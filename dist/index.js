@@ -12073,8 +12073,7 @@ function formatSummaryComment(findings, sarifData) {
     const rows = [
         ...['error', 'warning', 'note'].flatMap(level => grouped[level].map(f => `| ${f.severity} | [${path_1.default.basename(f.file)}#L${f.line}](../blob/${branch}/${f.file}#L${f.line}) | ${f.rule_id} | ${f.message_text} |`))
     ];
-    const banner = '---\n\n>🛡️ **_SARIFCourier_** by [Abdullah Schahin](https://github.com/Security-Falcon) — Delivering security insights to your developers.';
-    return header + tableHeader + rows.join('\n') + '\n\n' + banner;
+    return header + tableHeader + rows.join('\n') + '\n\n';
 }
 
 

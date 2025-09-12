@@ -35,7 +35,3 @@
 | <img src="https://raw.githubusercontent.com/Abdullah-Schahin/icons/refs/heads/main/low.svg" alt="note" width="24" /> | [simple-example.js#L1](../blob/main/file:///C:/dev/sarif/sarif-tutorials/samples/Introduction/simple-example.js#L1) | no-unused-vars | 'x' is assigned a value but never used. |
 | <img src="https://raw.githubusercontent.com/Abdullah-Schahin/icons/refs/heads/main/low.svg" alt="note" width="24" /> | [simple-example.js#L1](../blob/main/file:///C:/dev/sarif/sarif-tutorials/samples/Introduction/simple-example.js#L1) | no-unused-vars | 'x' is assigned a value but never used. |
 | <img src="https://raw.githubusercontent.com/Abdullah-Schahin/icons/refs/heads/main/low.svg" alt="note" width="24" /> | [simple-example.js#L1](../blob/main/file:///C:/dev/sarif/sarif-tutorials/samples/Introduction/simple-example.js#L1) | no-unused-vars | 'x' is assigned a value but never used. |
-
----
-
->🛡️ **_SARIFCourier_** by [Abdullah Schahin](https://github.com/Security-Falcon) — Delivering security insights to your developers.

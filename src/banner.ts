@@ -10,5 +10,5 @@ export function printBanner() {
 ███████║██║  ██║██║  ██║██║██║         ╚██████╗╚██████╔╝╚██████╔╝██║  ██║██║███████╗██║  ██║
 ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═╝          ╚═════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝╚══════╝╚═╝  ╚═╝                                                 
   `;
-  console.log(chalk.blue(banner) + '\n' + chalk.red('SARIFCourier 🛡️  By Abdullah Schahin') + '\n\n' + chalk.white(''));
+  console.log(chalk.blue(banner) + '\n' + chalk.red('sarif-render 🛡️') + '\n\n' + chalk.white(''));
 }

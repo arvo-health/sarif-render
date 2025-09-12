@@ -6,7 +6,7 @@ export function formatSummaryComment(findings: Finding[], sarifData?: any): stri
   for (const f of findings) {
     if (grouped[f.level]) grouped[f.level].push(f);
   }
-  const branch = process.env.HEAD_REF || 'main';
+  const branch = process.env.GITHUB_HEAD_REF || 'main';
   const driver = sarifData?.runs?.[0]?.tool?.driver?.name || 'Unknown Tool';
   const legend = `
 <details>

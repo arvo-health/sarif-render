@@ -15,6 +15,10 @@ inputs:
     description: 'Where to post the results: "pr" for Pull Request comment, "issue" for Issue comment. If not set, the action will auto-detect based on the GitHub context.'
     required: false
     default: ''
+  title_name:
+    description: 'Custom title name for the findings summary. Default: "Security"'
+    required: false
+    default: ''
 
 outputs:
   result:

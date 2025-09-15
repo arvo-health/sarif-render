@@ -11971,8 +11971,8 @@ exports.convert = convert;
 // src/convert.ts
 const extractFindings_1 = __nccwpck_require__(548);
 const formatSummaryComment_1 = __nccwpck_require__(5593);
-function convert(sarifContent) {
-    return (0, formatSummaryComment_1.formatSummaryComment)((0, extractFindings_1.extractFindings)(sarifContent), sarifContent);
+function convert(sarifContent, titleName) {
+    return (0, formatSummaryComment_1.formatSummaryComment)((0, extractFindings_1.extractFindings)(sarifContent), sarifContent, titleName);
 }
 
 
@@ -12040,7 +12040,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.formatSummaryComment = formatSummaryComment;
 const path_1 = __importDefault(__nccwpck_require__(6928));
-function formatSummaryComment(findings, sarifData) {
+function formatSummaryComment(findings, sarifData, titleName) {
     var _a, _b, _c, _d;
     const grouped = { error: [], warning: [], note: [] };
     for (const f of findings) {
@@ -12062,7 +12062,7 @@ function formatSummaryComment(findings, sarifData) {
 
 </details>
 `;
-    const header = `# 🛡️ Security Findings Summary 🛡️\n` +
+    const header = `# 🛡️ ${titleName || 'Security'} Findings Summary 🛡️\n` +
         `<details>\n<summary><strong>Details</strong></summary>\n\n` +
         `- Scanner: \`${driver}\`\n` +
         `- Total Findings: \`${findings.length}\`\n` +
@@ -12228,13 +12228,14 @@ async function main() {
         .option('local', { type: 'boolean', default: false, describe: 'Output markdown summary locally instead of posting to GitHub' })
         .option('output-file-name', { alias: 'ofn', type: 'string', describe: 'Name of output Markdown file. Default: sarif-2-md-output.md' })
         .option('post-target', { type: 'string', describe: 'Where to post the results: "pr" for Pull Request comment, "issue" for Issue comment. If not set, auto-detect.' })
+        .option('title-name', { alias: 'tn', type: 'string', describe: 'Custom title name for the findings summary. Default: "Security"' })
         .help()
         .parseSync();
     try {
         const sarifPath = path_1.default.resolve(argv.sarif);
         const sarifData = (0, utils_1.loadJsonFile)(sarifPath);
         (0, validateSarif_1.validateSarif)(sarifData);
-        const mdContent = (0, convert_1.convert)(sarifData);
+        const mdContent = (0, convert_1.convert)(sarifData, argv['title-name']);
         if (argv.local) {
             const outputMdName = argv["output-file-name"] ? `${argv["output-file-name"]}.md` : 'sarif-2-md-output.md';
             const outputMdPath = path_1.default.join(path_1.default.dirname(sarifPath), outputMdName);
@@ -12286,10 +12287,14 @@ async function runAction() {
         process.exit(1);
     }
     const postTarget = process.env['INPUT_POST_TARGET'] || '';
+    const titleName = process.env['INPUT_TITLE_NAME'] || '';
     // Simulate CLI args for yargs
     process.argv.push('--sarif', sarifFile);
     if (postTarget) {
         process.argv.push('--post-target', postTarget);
+    }
+    if (titleName) {
+        process.argv.push('--title-name', titleName);
     }
     await main();
 }

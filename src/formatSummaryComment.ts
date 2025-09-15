@@ -1,7 +1,7 @@
 import path from 'path';
 import { Finding } from './extractFindings';
 
-export function formatSummaryComment(findings: Finding[], sarifData?: any): string {
+export function formatSummaryComment(findings: Finding[], sarifData?: any, titleName?: string): string {
   const grouped: Record<string, Finding[]> = { error: [], warning: [], note: [] };
   for (const f of findings) {
     if (grouped[f.level]) grouped[f.level].push(f);
@@ -22,7 +22,7 @@ export function formatSummaryComment(findings: Finding[], sarifData?: any): stri
 </details>
 `;
   const header =
-    `# 🛡️ Security Findings Summary 🛡️\n` +
+    `# 🛡️ ${titleName || 'Security'} Findings Summary 🛡️\n` +
     `<details>\n<summary><strong>Details</strong></summary>\n\n` +
     `- Scanner: \`${driver}\`\n` +
     `- Total Findings: \`${findings.length}\`\n` +

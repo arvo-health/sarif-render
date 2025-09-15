@@ -17,6 +17,7 @@ async function main() {
     .option('local', { type: 'boolean', default: false, describe: 'Output markdown summary locally instead of posting to GitHub' })
     .option('output-file-name', { alias: 'ofn', type: 'string', describe: 'Name of output Markdown file. Default: sarif-2-md-output.md' })
     .option('post-target', { type: 'string', describe: 'Where to post the results: "pr" for Pull Request comment, "issue" for Issue comment. If not set, auto-detect.' })
+    .option('title-name', { alias: 'tn', type: 'string', describe: 'Custom title name for the findings summary. Default: "Security"' })
     .help()
     .parseSync();
 
@@ -24,7 +25,7 @@ async function main() {
     const sarifPath = path.resolve(argv.sarif);
     const sarifData = loadJsonFile(sarifPath);
     validateSarif(sarifData);
-    const mdContent = convert(sarifData);
+    const mdContent = convert(sarifData, argv['title-name']);
 
     if (argv.local) {
       const outputMdName = argv["output-file-name"] ? `${argv["output-file-name"]}.md` : 'sarif-2-md-output.md';
@@ -75,10 +76,14 @@ async function runAction() {
     process.exit(1);
   }
   const postTarget = process.env['INPUT_POST_TARGET'] || '';
+  const titleName = process.env['INPUT_TITLE_NAME'] || '';
   // Simulate CLI args for yargs
   process.argv.push('--sarif', sarifFile);
   if (postTarget) {
     process.argv.push('--post-target', postTarget);
+  }
+  if (titleName) {
+    process.argv.push('--title-name', titleName);
   }
   await main();
 }

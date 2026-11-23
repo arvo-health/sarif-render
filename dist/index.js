@@ -12030,16 +12030,28 @@ function extractFindings(sarif) {
 /***/ }),
 
 /***/ 5593:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.formatSummaryComment = formatSummaryComment;
-const path_1 = __importDefault(__nccwpck_require__(6928));
+const markdownText_1 = __nccwpck_require__(8801);
+const ICON_PREFIX = '<img src="https://raw.githubusercontent.com/Abdullah-Schahin/icons/';
+function severityCell(severity) {
+    if (severity.startsWith(ICON_PREFIX) && !severity.includes('|') && !/[\r\n]/.test(severity)) {
+        return severity;
+    }
+    return (0, markdownText_1.escapeMarkdownText)(severity);
+}
+function locationCell(file, line, branch) {
+    const safeLine = typeof line === 'number' && Number.isInteger(line) && line >= 0 ? line : null;
+    if (safeLine !== null && (0, markdownText_1.isAllowlistedRelativePath)(branch) && (0, markdownText_1.isAllowlistedRelativePath)(file)) {
+        const base = file.slice(file.lastIndexOf('/') + 1);
+        return `[${base}#L${safeLine}](../blob/${branch}/${file}#L${safeLine})`;
+    }
+    return (0, markdownText_1.escapeMarkdownText)(`${file}#L${safeLine === null ? '' : safeLine}`);
+}
 function formatSummaryComment(findings, sarifData, titleName) {
     var _a, _b, _c, _d;
     const grouped = { error: [], warning: [], note: [] };
@@ -12047,8 +12059,11 @@ function formatSummaryComment(findings, sarifData, titleName) {
         if (grouped[f.level])
             grouped[f.level].push(f);
     }
-    const branch = process.env.GITHUB_HEAD_REF || 'main';
-    const driver = ((_d = (_c = (_b = (_a = sarifData === null || sarifData === void 0 ? void 0 : sarifData.runs) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.tool) === null || _c === void 0 ? void 0 : _c.driver) === null || _d === void 0 ? void 0 : _d.name) || 'Unknown Tool';
+    const headRef = process.env.GITHUB_HEAD_REF;
+    const branch = headRef ? headRef : 'main';
+    const driverName = (_d = (_c = (_b = (_a = sarifData === null || sarifData === void 0 ? void 0 : sarifData.runs) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.tool) === null || _c === void 0 ? void 0 : _c.driver) === null || _d === void 0 ? void 0 : _d.name;
+    const driver = (0, markdownText_1.escapeMarkdownText)(typeof driverName === 'string' && driverName ? driverName : 'Unknown Tool');
+    const title = (0, markdownText_1.escapeMarkdownText)(titleName || 'Security');
     const legend = `
 <details>
 
@@ -12062,7 +12077,7 @@ function formatSummaryComment(findings, sarifData, titleName) {
 
 </details>
 `;
-    const header = `# 🛡️ ${titleName || 'Security'} Findings Summary 🛡️\n` +
+    const header = `# 🛡️ ${title} Findings Summary 🛡️\n` +
         `<details>\n<summary><strong>Details</strong></summary>\n\n` +
         `- Scanner: \`${driver}\`\n` +
         `- Total Findings: \`${findings.length}\`\n` +
@@ -12071,7 +12086,7 @@ function formatSummaryComment(findings, sarifData, titleName) {
         legend + '\n';
     const tableHeader = '| Severity | Location | Rule ID | Message |\n|:--:|---------|---------|---------|\n';
     const rows = [
-        ...['error', 'warning', 'note'].flatMap(level => grouped[level].map(f => `| ${f.severity} | [${path_1.default.basename(f.file)}#L${f.line}](../blob/${branch}/${f.file}#L${f.line}) | ${f.rule_id} | ${f.message_text} |`))
+        ...['error', 'warning', 'note'].flatMap(level => grouped[level].map(f => `| ${severityCell(f.severity)} | ${locationCell(f.file, f.line, branch)} | ${(0, markdownText_1.escapeMarkdownText)(f.rule_id)} | ${(0, markdownText_1.escapeMarkdownText)(f.message_text)} |`))
     ];
     return header + tableHeader + rows.join('\n') + '\n\n';
 }
@@ -12090,6 +12105,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.GitHubPRCommenter = void 0;
 const axios_1 = __importDefault(__nccwpck_require__(7269));
+const markdownText_1 = __nccwpck_require__(8801);
 class GitHubPRCommenter {
     constructor() {
         this.token = process.env.GITHUB_TOKEN || '';
@@ -12165,8 +12181,9 @@ class GitHubPRCommenter {
         if (driverName) {
             const commentsResp = await axios_1.default.get(commentsUrl, { headers: this.headers });
             if (commentsResp.status === 200 && Array.isArray(commentsResp.data)) {
-                const marker = `<!-- SARIFCourier:${driverName} -->`;
-                const existing = commentsResp.data.find((c) => typeof c.body === 'string' && c.body.includes(marker));
+                const rawMarker = `<!-- SARIFCourier:${driverName} -->`;
+                const marker = (0, markdownText_1.markdownCommentMarker)(driverName);
+                const existing = commentsResp.data.find((c) => typeof c.body === 'string' && (c.body.includes(rawMarker) || c.body.includes(marker)));
                 const commentBody = `${marker}\n${body}`;
                 if (existing) {
                     // Update existing comment
@@ -12299,6 +12316,57 @@ async function runAction() {
     await main();
 }
 runAction();
+
+
+/***/ }),
+
+/***/ 8801:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+/**
+ * SARIF message text, rule ids, and tool names are plain strings. They are
+ * escaped before being placed in a Markdown comment so they stay plain text.
+ * Location links are built only from relative paths whose segments are
+ * [A-Za-z0-9._-]+, with no empty, ".", or ".." segment.
+ */
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.escapeMarkdownText = escapeMarkdownText;
+exports.isAllowlistedRelativePath = isAllowlistedRelativePath;
+exports.markdownCommentMarker = markdownCommentMarker;
+const LINE_BREAK = /[\0\u0008\u000B\u000C\u000E-\u001F\u007F\u0085\u2028\u2029\r\n]/g;
+const INVISIBLE = /[\u00AD\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u206F\uFEFF]/g;
+const PATH_SEGMENT = /^[A-Za-z0-9._-]+$/;
+function escapeMarkdownText(value) {
+    return value
+        .normalize('NFKC')
+        .replace(INVISIBLE, '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/\\/g, '\\\\')
+        .replace(/\|/g, '\\|')
+        .replace(/`/g, "'")
+        .replace(/\[/g, '&#91;')
+        .replace(/\]/g, '&#93;')
+        .replace(/\(/g, '&#40;')
+        .replace(/\)/g, '&#41;')
+        .replace(LINE_BREAK, ' ')
+        .replace(/@/g, '@ ')
+        .replace(/([a-z][a-z0-9+.-]*:)\/\//gi, '$1 //')
+        .replace(/\bwww\./gi, 'www[.]');
+}
+function isAllowlistedRelativePath(value) {
+    if (value.length === 0)
+        return false;
+    return value.split('/').every((segment) => segment !== '.' && segment !== '..' && PATH_SEGMENT.test(segment));
+}
+function markdownCommentMarker(name) {
+    const safe = escapeMarkdownText(name).replace(/[<>]/g, ' ');
+    return `<!-- SARIFCourier:${safe} -->`;
+}
 
 
 /***/ }),

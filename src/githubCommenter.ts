@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { markdownCommentMarker } from './markdownText';
 
 export class GitHubPRCommenter {
   private token: string;
@@ -75,8 +76,11 @@ export class GitHubPRCommenter {
     if (driverName) {
       const commentsResp = await axios.get(commentsUrl, { headers: this.headers });
       if (commentsResp.status === 200 && Array.isArray(commentsResp.data)) {
-        const marker = `<!-- SARIFCourier:${driverName} -->`;
-        const existing = commentsResp.data.find((c: any) => typeof c.body === 'string' && c.body.includes(marker));
+        const rawMarker = `<!-- SARIFCourier:${driverName} -->`;
+        const marker = markdownCommentMarker(driverName);
+        const existing = commentsResp.data.find((c: any) =>
+          typeof c.body === 'string' && (c.body.includes(rawMarker) || c.body.includes(marker))
+        );
         const commentBody = `${marker}\n${body}`;
         if (existing) {
           // Update existing comment
